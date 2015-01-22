@@ -1,0 +1,66 @@
+---
+title: "Assessment of Social and Economical Impacts of Disasters in USA"
+author: "Pranjal Mandhaniya"
+date: "Thursday 22 January 2015"
+output: html_document
+---
+
+### Synopsis
+
+1. Unzipped archive and read CSV file under "wtrdt" name.
+2. Examined dataframe for required names to analyze and subset it.
+3. Check for fatalities and Injuries differently for disaster's impact on humans.
+4. Similarly for economical consequences we saw crop damage and property damage differently.
+5. Because of getting different results on both end we joined crop and property damage.
+
+### Data Processing
+
+1. Reading CSV file.
+
+```{r,cache=TRUE}
+wtrdt <- read.csv("repdata-data-StormData.csv") 
+wtrdt <- wtrdt[,c("EVTYPE","FATALITIES","INJURIES","PROPDMG","CROPDMG")]
+head(wtrdt)
+summary(wtrdt)
+```
+
+2. Analyzing data for Human loss.
+
+```{r, cache=TRUE }
+ppldt <- aggregate(FATALITIES~EVTYPE,data = wtrdt,sum)
+ppldt[ppldt$FATALITIES==max(ppldt$FATALITIES),]
+
+njrdt <- aggregate(INJURIES~EVTYPE,data = wtrdt,sum)
+njrdt[njrdt$INJURIES==max(njrdt$INJURIES),]
+
+library(ggplot2)
+ggplot(ppldt[ppldt$FATALITIES>500, ], aes(EVTYPE, FATALITIES)) + 
+  geom_bar(stat = "identity", colour = "cyan",fill = "red", width = 1) + 
+  labs(title = "Histogram of Fatalities v/s Events(Top)", x = "Event",y = "Total number of Fatalities") +
+  theme(axis.text.x = element_text(angle = 90,hjust = 0.5,size = 10))
+```
+
+3. Analyzing for Economical loss.
+
+```{r,cache=TRUE}
+prpdt <- aggregate(PROPDMG~EVTYPE,data = wtrdt,sum)
+prpdt[prpdt$PROPDMG==max(prpdt$PROPDMG),]
+
+crpdt <- aggregate(CROPDMG~EVTYPE,data = wtrdt,sum)
+crpdt[crpdt$CROPDMG==max(crpdt$CROPDMG),]
+
+alldmgdt <- aggregate( CROPDMG+PROPDMG ~EVTYPE,data = wtrdt,sum)
+c("EVTYPE","DAMAGE") -> names(alldmgdt) 
+alldmgdt[alldmgdt[,2] == max(alldmgdt[,2]) , ]
+
+ggplot(alldmgdt[alldmgdt[,2]>50000, ], aes(EVTYPE, DAMAGE)) + 
+  geom_bar(stat = "identity", colour = "cyan",fill = "red", width = 1) + 
+  labs(title = "Histogram of Damages v/s Events(Top)", x = "Event",y = "Total amount of Damages") +
+  theme(axis.text.x = element_text(angle = 90,hjust = 0.5,size = 12))
+```
+
+### Results
+
+1. Tornado cause major human loss and impact than any other event causing maximum fatalities and injuries.
+2. Tornado also cause maximum property damage but Hail cause maximum crop damage.
+3. As combination of crop and property damage its still Tornado on top.
